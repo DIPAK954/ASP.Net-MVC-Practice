@@ -1,0 +1,123 @@
+﻿@model IEnumerable<FirstApp.Models.Course>
+
+@{
+    ViewData["Title"] = "Courses";
+}
+
+<div class="card shadow">
+    <div class="card-header">
+        <div class="card-title"><h1>@ViewData["Title"]</h1></div>
+        <div>
+            <a asp-action="Create">Create New</a>
+        </div>
+    </div>
+    <div class="card-body">
+
+        <table class="table" id="courseTable">
+            <thead>
+                <tr>
+                    <th>
+                        Title
+                    </th>
+                    <th>
+                        Code
+                    </th>
+                    <th>
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteCourse">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title text-danger"><h4>Delete Course</h4></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-content p-4">
+                <h5>Are you sure you want to delete <strong id="courseName"></strong> course ?</h5>
+                <input type="hidden" id="deleteCourseId" />
+            </div>
+            <div class="modal-footer">
+                 <button type="button" class="btn btn-danger" id="deleteBtn">Delete</button>
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="toastDeleteSuccess" class="toast fade align-items-center bg-danger text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Course deleted successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $('#courseTable').DataTable({
+            "ajax":{
+                "url":'/Courses/AllCourses',
+                "type" : "GET",
+                "dataType" : "json"
+            },
+            "columns" : [
+                {"data":"title"},
+                {"data":"code"},
+                {"data":"id",
+                 "render":function(data,type,row,meta){
+                     return `       
+                       <a href="/Courses/Edit/${data}" class="btn btn-sm btn-primary">Edit</a>
+                       <a href="/Courses/Details/${data}" class="btn btn-sm btn-info">Details</a>
+                       <button class="btn btn-sm btn-danger" onclick="deleteCourse(${data}, '${row.title}')">Delete</button>
+                     `
+                 },
+                 "orderable": false
+                }
+            ]
+        });
+
+        // handle delete
+        $('#deleteBtn').click(function(){
+            var id = $('#deleteCourseId').val();
+
+            $.ajax({
+                url:"/Courses/DeleteConfirmed",
+                type:"POST",
+                data:{
+                        ID: id
+                },
+                success:function(){
+                    $('#deleteCourse').modal('hide');
+                    $('#courseTable').DataTable().ajax.reload();
+              
+                    // Show toast with auto-close
+                    var toastEl = $('#toastDeleteSuccess');
+                    var toast = new bootstrap.Toast(toastEl, {
+                        delay: 3000  // auto close after 3 seconds (3000 ms)
+                    });
+                    toast.show();
+                },
+                error: function () {
+                    alert('Error deleting course.');
+                }
+            })
+        });
+    });
+
+    function deleteCourse(id,title){
+        $('#deleteCourseId').val(id);
+        $('#courseName').text(title);
+        $('#deleteCourse').modal('show');
+    }
+    
+</script>

@@ -1,0 +1,102 @@
+﻿@model FirstApp.Models.Course
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<h4>Course</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+       
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CreateCourse">Create Course</a>
+
+        <div class="modal fade" id="CreateCourse">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Create Course</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            @Html.AntiForgeryToken()
+                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                             <div class="form-group">
+                                 <label asp-for="Title" class="control-label"></label>
+                                 <input asp-for="Title" id="Title" class="form-control" />
+                                 <span asp-validation-for="Title" class="text-danger"></span>
+                             </div>
+                             <div class="form-group">
+                                 <label asp-for="Code" class="control-label"></label>
+                                 <input asp-for="Code" id="Code" class="form-control" />
+                                 <span asp-validation-for="Code" class="text-danger"></span>
+                             </div>
+                        </form>    
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success" id="courseSubmitbtn">Submit</button>
+                        <button class="btn btn-danger" data-bs-dismiss="modal">Cancle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="toast" class="toast fade align-items-center bg-success text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                New Course add successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(document).ready(function(){
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        $("#courseSubmitbtn").click(function(){
+            
+            var title = $('#Title').val();
+            var code = $('#Code').val();
+
+            $.ajax({
+                type:"POST",
+                url:"/Courses/Create",
+                data:{
+                    Title:title,
+                    Code:code
+                },
+                headers: {
+                    'RequestVerificationToken': token // 🔥 Important!
+                },
+                success: function(responce){
+                    $("#CreateCourse").modal('hide');
+                    
+                    // Show toast with auto-close
+                    var toastEl = $('#toast');
+                    var toast = new bootstrap.Toast(toastEl, {
+                        delay: 3000  // auto close after 3 seconds (3000 ms)
+                    });
+                    toast.show();
+                }
+            });
+        });
+    
+    });
+
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
