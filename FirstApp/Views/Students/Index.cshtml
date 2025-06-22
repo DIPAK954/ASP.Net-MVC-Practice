@@ -1,20 +1,19 @@
 ﻿@model IEnumerable<FirstApp.Models.Student>
 
 @{
-    ViewData["Title"] = "Student Info";
+    ViewData["Title"] = "Student";
 }
 
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
-
-<h1>@ViewData["Title"]</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New Student</a>
-</p>
-<table class="table">
+<div class="card shadow">
+    <div class="card-header">
+        <div class="flex-container row row-cols-2">
+            <div class="col"><h1>@ViewData["Title"]</h1></div>
+            <div class="col text-end"><a asp-action="Create" class="btn btn-primary">Create New</a></div>
+        </div>
+    </div>
+    <div class="card-body">
+<table class="table" id="StudentTable">
     <thead>
         <tr>
             <th>
@@ -30,23 +29,11 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Enrolled)
-            </td>
-            <td>
-                    <a href="#" class="btn btn-warning" onclick="EditStudent(@item.ID,'@item.Name','@item.Enrolled')">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a href="#" class="btn btn-danger" onclick="DeleteItem(@item.ID,'@item.Name')">Delete</a>
-            </td>
-        </tr>
-}
+
     </tbody>
 </table>
+    </div>
+</div>
 
 <input type="hidden" id="hiddenId"/>
 <input type="hidden" id="hiddenName" />
@@ -77,7 +64,7 @@
         <div class="modal-content"> 
             <div class="modal-header">
                 <h4 class="modal-title">
-                    Edit Student Data
+                    Edit Student
                 </h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -101,101 +88,139 @@
             </div>
         </div>
     </div>
+</div> 
+
+@* tost massage *@
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="toastMsg" class="toast fade align-items-center bg-danger text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Student deleted successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
 </div>
+@section Scripts {
+    <script>
+        function DeleteItem(id, name) {
+            $("#hiddenId").val(id);
+            $('#hiddenName').val(name);
+            $('#studentName').text(name);
+            $("#DeleteModal").modal('show');
+        }
 
-<script>
-    function DeleteItem(id,name){
-        $("#hiddenId").val(id);
-        $('#hiddenName').val(name);
-        $('#studentName').text(name);
-        $("#DeleteModal").modal('show');
-    }
+        function EditStudent(id, name, enrolled) { 
+            $("#ID").val(id);
+            $("#Name").val(name);
+            $("#Enrolled").val(enrolled);
+            $("#EditModal").modal('show');
+        }
 
-    $(document).ready(function(){
-        $("#deleteBtn").click(function(){
-            var id = $("#hiddenId").val();
+        $(document).ready(function () {
 
-            $.ajax({
-                type:"POST",
-                url:"/Students/Delete",
-                data:{
-                    id:id
+            // Initialize DataTable
+            $('#StudentTable').DataTable({
+                "ajax": {
+                    "url": "/Students/GetAllStudents",
+                    "type": "GET",
+                    "dataType": "json"
                 },
-                success: function(response){
-                    $("#DeleteModal").modal('hide');
-                    alert("Student deleted successfully!");
-                    location.reload();
-                },
-                error: function(response){
-                    alert("Error deleting student.");
-                }
-            })
-        })
-    });
-</script>
+                "columns": [
+                    { "data": "name" },
+                    { "data": "enrolled" },
+                    {
+                        "data": "id",
+                        "render": function (data, type, row) {
+                            return `
+                                <a href="#" class="btn btn-warning btn-sm" onclick="EditStudent(${data}, '${row.name}', '${row.enrolled}')">Edit</a>
+                                <a href="#" class="btn btn-danger btn-sm" onclick="DeleteItem(${data}, '${row.name}')">Delete</a>
+                            `;
+                        },
+                        "orderable": false
+                    }
+                ]
+            });
 
-
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-<script>
-    function EditStudent(id,name,enrolled){
-        $("#ID").val(id);
-        $("#Name").val(name);
-        $("#Enrolled").val(enrolled);
-        $("#EditModal").modal('show');
-    }
-
-    $(document).ready(function(){
-        $('#EditStudent').validate({
-            rules:{
-                Name: {
-                    required: true,
-                    minlength: 3
-                },
-                Enrolled: {
-                    required: true,
-                    date: true
-                }
-            },
-            messages: {
-                Name: {
-                    required: "Please enter a name",
-                    minlength: "Name must be at least 3 characters long"
-                },
-                Enrolled: {
-                    required: "Please enter an enrollment date",
-                    date: "Please enter a valid date"
-                }
-            },
-            errorClass: "text-danger",
-            submitHandler: function(){
-                var id = $("#ID").val();
-                var name=$("#Name").val();
-                var enrolled =$("#Enrolled").val();
+            // Handle Delete Confirm Button
+            $("#deleteBtn").click(function () {
+                var id = $("#hiddenId").val();
 
                 $.ajax({
-                    type:"POST",
-                    url:"/Students/Edit",
-                    data:{ 
-                        ID: id,
-                        Name: name,
-                        Enrolled: enrolled
+                    type: "POST",
+                    url: "/Students/Delete",
+                    data: { id: id },
+                    success: function () {
+                        $("#DeleteModal").modal('hide');
+                        $("#StudentTable").DataTable().ajax.reload();
+
+                        var toastMsg = $("#toastMsg");
+                        var toast = new bootstrap.Toast(toastMsg, { delay: 3000 });
+                        toast.show();
                     },
-                    success: function(responce){
-                        $("#EditModal").modal('hide');
-                        alert("Student updated successfully!");
-                        location.reload();
+                    error: function () {
+                        alert("Error deleting student.");
                     }
                 });
-                return false;
-            }
-        });
+            });
 
-        $("#StudentUpdate").click(function(){
-            $("#EditStudent").submit();
-        });
-    })
+            // jQuery Validate Edit Form
+            $("#EditStudent").validate({
+                rules: {
+                    Name: {
+                        required: true,
+                        minlength: 3
+                    },
+                    Enrolled: {
+                        required: true,
+                        date: true
+                    }
+                },
+                messages: {
+                    Name: {
+                        required: "Please enter a name",
+                        minlength: "Name must be at least 3 characters"
+                    },
+                    Enrolled: {
+                        required: "Please enter enrollment date",
+                        date: "Please enter a valid date"
+                    }
+                },
+                errorClass: "text-danger",
+                submitHandler: function (form) {
+                    var id = $("#ID").val();
+                    var name = $("#Name").val();
+                    var enrolled = $("#Enrolled").val();
 
-</script>
+                    $.ajax({
+                        type: "POST",
+                        url: "/Students/Edit",
+                        data: {
+                            ID: id,
+                            Name: name,
+                            Enrolled: enrolled
+                        },
+                        success: function () {
+                            $("#EditModal").modal('hide');
+                            alert("Student updated successfully!");
+                            $("#StudentTable").DataTable().ajax.reload();
+                        },
+                        error: function () {
+                            alert("Error updating student.");
+                        }
+                    });
+
+                    return false;
+                }
+            });
+
+            // Trigger submit on update button click
+            $("#StudentUpdate").click(function () {
+                $("#EditStudent").submit();
+            });
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

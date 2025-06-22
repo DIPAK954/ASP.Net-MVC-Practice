@@ -1,103 +1,109 @@
 ﻿@model FirstApp.Models.Student
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Student";
 }
 
-<h1>Create</h1>
-
-<h4>Student</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <div id="msg" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    Student added successfully !
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+<div class="card shadow">
+    <div class="card-header">
+        <div class="card-title"><h3>@ViewData["Title"]</h3></div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">           
+                <form id="studentForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Enrolled" class="control-label"></label>
+                        <input asp-for="Enrolled" class="form-control" />
+                        <span asp-validation-for="Enrolled" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <input id="submitBtn" type="button" value="Submit" class="btn btn-primary" />
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </form>
             </div>
         </div>
-        <form id="studentForm">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Enrolled" class="control-label"></label>
-                <input asp-for="Enrolled" class="form-control" />
-                <span asp-validation-for="Enrolled" class="text-danger"></span>
-            </div>
-            <div class="form-group mt-2">
-                <input id="submitBtn" type="button" value="Submit" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
     </div>
 </div>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
-
-<script>
-    $(document).ready(function () {
-
-        // Initialize form validation
-        $("#studentForm").validate({
-            rules: {
-                Name: {
-                    required: true,
-                    minlength: 3
-                },
-                Enrolled: {
-                    required: true
-                }
-            },
-            messages: {
-                Name: {
-                    required: "Please enter the student's name",
-                    minlength: "Name must be at least 3 characters long"
-                },
-                Enrolled: {
-                    required: "Please enter enrollment status"
-                }
-            },
-            errorClass: "text-danger", // Bootstrap style
-            submitHandler: function (form) {
-                // This runs only if form is valid
-                var name = $("#Name").val();
-                var enrolled = $("#Enrolled").val();
-
-                $.ajax({
-                    type: "POST",
-                    url: "/Students/Create",
-                    data: {
-                        Name: name,
-                        Enrolled: enrolled
-                    },
-                    success: function (response) {
-                        $("#msg").toast("show");
-                        $("#studentForm")[0].reset();
-                    },
-                    error: function (xhr) {
-                        alert("Error: " + xhr.status + " - " + xhr.responseText);
-                    }
-                });
-                return false; // Prevent default submit
-            }
-        });
-
-        // Manual button handler if needed
-        $("#submitBtn").click(function () {
-            $("#studentForm").submit(); // Triggers .validate()
-        });
-    });
-</script>
-
+@* tost massage *@
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="toastMsg" class="toast fade align-items-center bg-success text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                New Student Added successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 @section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // Initialize form validation
+            $("#studentForm").validate({
+                rules: {
+                    Name: {
+                        required: true,
+                        minlength: 3
+                    },
+                    Enrolled: {
+                        required: true
+                    }
+                },
+                messages: {
+                    Name: {
+                        required: "Please enter the student's name",
+                        minlength: "Name must be at least 3 characters long"
+                    },
+                    Enrolled: {
+                        required: "Please enter enrollment status"
+                    }
+                },
+                errorClass: "text-danger", // Bootstrap style
+                submitHandler: function (form) {
+                    // This runs only if form is valid
+                    var name = $("#Name").val();
+                    var enrolled = $("#Enrolled").val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/Students/Create",
+                        data: {
+                            Name: name,
+                            Enrolled: enrolled
+                        },
+                        success: function (response) {
+                            $("#studentForm")[0].reset();
+
+                            var toastMsg=$("#toastMsg");
+                            var toast = new bootstrap.Toast(toastMsg,{
+                                delay:3000
+                            });
+                            toast.show();
+                        },
+                        error: function (xhr) {
+                            alert("Error: " + xhr.status + " - " + xhr.responseText);
+                        }
+                    });
+                    return false; // Prevent default submit
+                }
+            });
+
+            // Manual button handler if needed
+            $("#submitBtn").click(function () {
+                $("#studentForm").submit(); // Triggers .validate()
+            });
+        });
+    </script>
+
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

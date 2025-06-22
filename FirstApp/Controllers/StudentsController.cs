@@ -29,9 +29,14 @@ namespace FirstApp.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            //var students = _context.Students.ToList();
+            return View();
+        }
+
+        public JsonResult GetAllStudents()
+        {
             var students = _student.GetAll();
-            return View(students);
+
+            return Json(new { data = students });
         }
 
         // GET: Students/Details/5
