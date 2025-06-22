@@ -90,17 +90,6 @@
     </div>
 </div> 
 
-@* tost massage *@
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
-    <div id="toastMsg" class="toast fade align-items-center bg-danger text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                Student deleted successfully!
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    </div>
-</div>
 @section Scripts {
     <script>
         function DeleteItem(id, name) {
@@ -121,6 +110,7 @@
 
             // Initialize DataTable
             $('#StudentTable').DataTable({
+                responsive: true,
                 "ajax": {
                     "url": "/Students/GetAllStudents",
                     "type": "GET",
@@ -154,12 +144,10 @@
                         $("#DeleteModal").modal('hide');
                         $("#StudentTable").DataTable().ajax.reload();
 
-                        var toastMsg = $("#toastMsg");
-                        var toast = new bootstrap.Toast(toastMsg, { delay: 3000 });
-                        toast.show();
+                        showToast("Student deleted successfully!", "bg-danger");
                     },
                     error: function () {
-                        alert("Error deleting student.");
+                        showToast("Error updating student.","bg-danger");
                     }
                 });
             });
@@ -202,11 +190,11 @@
                         },
                         success: function () {
                             $("#EditModal").modal('hide');
-                            alert("Student updated successfully!");
                             $("#StudentTable").DataTable().ajax.reload();
+                            showToast("Student updated successfully!", "bg-success");
                         },
                         error: function () {
-                            alert("Error updating student.");
+                            showToast("Error updating student.","bg-danger");
                         }
                     });
 

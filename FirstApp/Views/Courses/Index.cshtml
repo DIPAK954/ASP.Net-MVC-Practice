@@ -65,6 +65,7 @@
 <script>
     $(document).ready(function(){
         $('#courseTable').DataTable({
+            responsive: true,
             "ajax":{
                 "url":'/Courses/AllCourses',
                 "type" : "GET",
